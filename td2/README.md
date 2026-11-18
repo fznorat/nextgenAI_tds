@@ -7,6 +7,9 @@ Sub-group 3 (DIA 1).
 real TD 1 cells committed in [`../td1/`](../td1/) (`nature = real`). Where a supplied or
 constructed example is used, it is labelled as such.
 
+**Prompts.** TD 2 sent no prompt to any model (no provider call). The prompts used in TD 1 are
+unchanged: see [`../td1/prompt-td1.md`](../td1/prompt-td1.md).
+
 **State of the three steps:**
 
 | Step | Owner | Status | Where |
@@ -19,23 +22,25 @@ constructed example is used, it is labelled as such.
 
 | File | What it is |
 |---|---|
-| [`scripts/family_rates_td2.py`](scripts/family_rates_td2.py) | Derives the exact TD 1 rate of every question family, and what a 2-of-3 panel, a 3-of-5 quorum and our own panels would have returned. Writes the two CSV files below. |
-| [`analysis/csv/family-rates-td1.csv`](analysis/csv/family-rates-td1.csv) | `correct / cases` per family and per model, with every failing cell named |
-| [`analysis/csv/quorum-by-family-td1.csv`](analysis/csv/quorum-by-family-td1.csv) | One row per question: decision, value, votes and agreement with the reference, for the three configurations |
-| [`scripts/atelier-routage.py`](scripts/atelier-routage.py) | The kit's simulator, unchanged, kept so the "before" output can be reproduced |
-| [`scripts/atelier-routage-td2.py`](scripts/atelier-routage-td2.py) | The simulator adapted to our rule: our models, our per-family eligibility, our checks, TD 1 cells in every reason |
-| [`scripts/age_guard_td2.py`](scripts/age_guard_td2.py) | The deterministic check the rule calls `reference`, executed on `data/boutique.sqlite` |
+| [`C/scripts/family_rates_td2.py`](C/scripts/family_rates_td2.py) | Derives the exact TD 1 rate of every question family, and what a 2-of-3 panel, a 3-of-5 quorum and our own panels would have returned. Writes the two CSV files below. |
+| [`C/analysis/csv/family-rates-td1.csv`](C/analysis/csv/family-rates-td1.csv) | `correct / cases` per family and per model, with every failing cell named |
+| [`C/analysis/csv/quorum-by-family-td1.csv`](C/analysis/csv/quorum-by-family-td1.csv) | One row per question: decision, value, votes and agreement with the reference, for the three configurations |
+| [`C/scripts/atelier-routage.py`](C/scripts/atelier-routage.py) | The kit's simulator, unchanged, kept so the "before" output can be reproduced |
+| [`C/scripts/atelier-routage-td2.py`](C/scripts/atelier-routage-td2.py) | The simulator adapted to our rule: our models, our per-family eligibility, our checks, TD 1 cells in every reason |
+| [`C/scripts/age_guard_td2.py`](C/scripts/age_guard_td2.py) | The deterministic check the rule calls `reference`, executed on `data/boutique.sqlite` |
+| [`A/`](A/) | Step 1 (pair A): write-up [`A/README.md`](A/README.md), `vote_k_sur_n` in the skeleton, tests, twenty-question table and output |
 | [`B/`](B/) | Step 2 (pair B): write-up [`B/README.md`](B/README.md), scripts, delta SQL and output |
-| [`outputs/routing/`](outputs/routing/) | Saved outputs: before, after, the rule table, the family rates, the check on the twenty questions |
+| [`C/outputs/routing/`](C/outputs/routing/) | Saved outputs: before, after, the rule table, the family rates, the check on the twenty questions |
 
 Reproduce everything from the repository root:
 
 ```powershell
-python td2/scripts/family_rates_td2.py --print
-python td2/scripts/atelier-routage.py                      # before
-python td2/scripts/atelier-routage-td2.py --table          # after
-python td2/scripts/atelier-routage-td2.py --check-rates    # embedded rates vs the CSV
-python td2/scripts/age_guard_td2.py <student-kit-dir>      # the reference check on C01..C20
+python td2/C/scripts/family_rates_td2.py --print
+python td2/C/scripts/atelier-routage.py                      # before
+python td2/C/scripts/atelier-routage-td2.py --table          # after
+python td2/C/scripts/atelier-routage-td2.py --check-rates    # embedded rates vs the CSV
+python td2/C/scripts/age_guard_td2.py <student-kit-dir>      # the reference check on C01..C20
+python td2/A/scripts/test_vote.py                               # step 1, the vote contract
 python td2/B/scripts/pair_b_wrong_consensus.py --db <student-kit-dir>/data/boutique.sqlite   # step 2
 ```
 
@@ -69,7 +74,7 @@ Four shared wrong values in the 100 real TD 1 cells (votes cross-checked with pa
 
 **C10 (age at the time of the order)** is the only case where the wrong value wins both quorums. Root cause: completed age 25 at the order date covers (a) year difference 25 with birthday reached and (b) year difference 26 with birthday not yet reached; Cohere and Dots test only (a), Qwen adds a branch with `= 24` instead of `= 26` (age 23, 0 rows). The delta query on `data/boutique.sqlite` ([`B/scripts/delta_c10.sql`](B/scripts/delta_c10.sql)) returns 4 customers (C004, C005, C007, C022), 59 order lines, **439570 cents = 558980 − 119410**, with 0 rows wrongly added; an independent Python age recomputation gives the same figures.
 
-Consequence: a quorum only protects against independent errors; for the age families a deterministic check is required (section 3.4).
+Consequence: a quorum is not a proof of correctness, for two reasons: correlated errors (C10: three families share the same shortcut, and widening the quorum from 3 to 5 added a correlated vote) and convergence on an attractor value (C15: two independent bugs both return 0, and the 2-of-3 panel keeps 0). For the age families a deterministic check is required (section 3.4).
 
 ---
 
@@ -105,7 +110,7 @@ formatting accident). So the rule is cheap where there is no age, and determinis
 
 ## 3.2 What a vote would have returned (cross-check for pair A)
 
-From [`analysis/csv/quorum-by-family-td1.csv`](analysis/csv/quorum-by-family-td1.csv). Fixed panel =
+From [`C/analysis/csv/quorum-by-family-td1.csv`](C/analysis/csv/quorum-by-family-td1.csv). Fixed panel =
 `gpt-oss-120b`, `cohere/north-mini-code:free`, `qwen3.8-27b` with k = 2 (the panel of
 `atelier-vote.py`). Quorum = the five TD 1 models with k = 3. A cell with no value
 (`sql_invalid`, `sql_rejected`) stays in n and casts no vote.
@@ -244,7 +249,7 @@ accepted a wrong value. That is the number TD 3 has to start from.
 
 ## 3.4 The `reference` check, executed
 
-[`scripts/age_guard_td2.py`](scripts/age_guard_td2.py) rebuilds the reference query from the
+[`C/scripts/age_guard_td2.py`](C/scripts/age_guard_td2.py) rebuilds the reference query from the
 question's own parameters and runs it read-only on `data/boutique.sqlite`. The completed-age window
 is written once and parameterised:
 
@@ -254,7 +259,7 @@ c.birth_date >  date(D, '-26 years')   AND   c.birth_date <= date(D, '-25 years'
 
 with `D` the reference date of the question, or `o.date` when the question asks for the age at the
 time of the order. Output in
-[`outputs/routing/age-guard-20-questions.txt`](outputs/routing/age-guard-20-questions.txt):
+[`C/outputs/routing/age-guard-20-questions.txt`](C/outputs/routing/age-guard-20-questions.txt):
 
 ```
 case       guard  reference ref ok      2-of-3     3-of-5 verdict of the check
@@ -273,8 +278,8 @@ amounts in pure Python without SQL, so the reference is itself double-sourced.
 
 ## 3.5 The simulator, before and after
 
-Before — [`scripts/atelier-routage.py`](scripts/atelier-routage.py), unchanged kit, output in
-[`outputs/routing/routage-before.txt`](outputs/routing/routage-before.txt):
+Before — [`C/scripts/atelier-routage.py`](C/scripts/atelier-routage.py), unchanged kit, output in
+[`C/outputs/routing/routage-before.txt`](C/outputs/routing/routage-before.txt):
 
 ```
 simple               run      small-free            cash=0     eligible included capacity
@@ -286,9 +291,9 @@ high impact          run      senior-subscription   cash=0     eligible included
 unknown capability   abstain  None                  cash=0     no eligible resource within deadline and budget
 ```
 
-After — [`scripts/atelier-routage-td2.py`](scripts/atelier-routage-td2.py), full output in
-[`outputs/routing/routage-after.txt`](outputs/routing/routage-after.txt) and
-[`routage-after.jsonl`](outputs/routing/routage-after.jsonl). What changed in the code:
+After — [`C/scripts/atelier-routage-td2.py`](C/scripts/atelier-routage-td2.py), full output in
+[`C/outputs/routing/routage-after.txt`](C/outputs/routing/routage-after.txt) and
+[`routage-after.jsonl`](C/outputs/routing/routage-after.jsonl). What changed in the code:
 
 - `RESOURCES` carries our five TD 1 models with their **measured per-family results**, plus two
   escalation routes of the portfolio. Eligibility is per family, not one `level` number: TD 1 shows
@@ -399,3 +404,8 @@ that the cheapest adequate check is not a bigger quorum but a deterministic reco
 | PERKINS Luca, NORAT Faizan | A | Step 1: `vote_k_sur_n`, the four synthetic examples, the twenty-question 2-of-3 versus 3-of-5 table |
 | SAAID Myriam, DE GENTILE Océane | B | Step 2: scan of the 100 cells, quorum verdicts, C10 SQL root cause, delta query and independent check on `data/boutique.sqlite`, DEMO-VOTE, cross-check with pair A's vote, this report's section 2 |
 
+## 5. Next steps
+
+- **Hand-in** (deadline Sunday 22 November 2026, 23:59 Paris): in the Moodle entry, give the repository URL, the full commit hash and the link to this report at that commit; keep the earlier TD entries; check that the repository opens without signing in.
+- **Cross-reviews:** each pair applies the remarks of the notes written about its work (`A/groupe-*.md`, `B/groupe-*.md`, `C/groupe-*.md`), or records why a remark is not applied.
+- **TD 3:** the questions where no free model is enough on its own (C10, C15 and C17, section 3.8) set the price of checking; the cost of the deterministic `reference` check against a quorum is the starting point.

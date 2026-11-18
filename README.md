@@ -6,7 +6,7 @@ One folder per session, each with its own report.
 | Folder | Session | Report | Status |
 |---|---|---|---|
 | [`td1/`](td1/) | TD 1 — five models write SQL, measured against our own reference | [`td1/td1.md`](td1/td1.md) | Complete, 100/100 cells |
-| [`td2/`](td2/) | TD 2 — the quorum, then the routing rule | [`td2/README.md`](td2/README.md) | Step 3 (pair C) complete; steps 1 and 2 with pairs A and B |
+| [`td2/`](td2/) | TD 2 — the quorum, then the routing rule | [`td2/README.md`](td2/README.md) | Steps 1, 2 and 3 complete |
 | [`td3/`](td3/) | TD 3 — configuration, cost and demonstration | [`td3/td3.md`](td3/td3.md) | Not started |
 
 Each folder keeps its own `data/`, `analysis/`, `scripts/` and `outputs/` so a session can be
@@ -41,11 +41,14 @@ Every script is standard library only, reads committed files and makes no networ
 # TD 1 — recompute the twenty references two independent ways
 python td1/scripts/check_references.py <student-kit-dir> td1/data/references/reference-td1.csv
 
-# TD 2 — per-family TD 1 rates, quorum behaviour, routing rule, deterministic check
-python td2/scripts/family_rates_td2.py --print
-python td2/scripts/atelier-routage.py                     # the kit's rule, before adaptation
-python td2/scripts/atelier-routage-td2.py --table         # our rule
-python td2/scripts/age_guard_td2.py <student-kit-dir>     # the reference check, executed
+# TD 2 — step 1 vote, step 2 wrong consensus, step 3 per-family rates, routing rule, deterministic check
+python td2/A/scripts/test_vote.py                         # step 1, the vote contract
+python td2/A/scripts/step1_table.py --traces td1/data/traces/traces-td1.csv --reference td1/data/references/reference-td1.csv --skeleton td2/A/scripts/skeleton-multi-llm-en.py --out td2/A/analysis/csv/step1-table.csv
+python td2/B/scripts/pair_b_wrong_consensus.py --db <student-kit-dir>/data/boutique.sqlite   # step 2
+python td2/C/scripts/family_rates_td2.py --print
+python td2/C/scripts/atelier-routage.py                   # the kit's rule, before adaptation
+python td2/C/scripts/atelier-routage-td2.py --table       # our rule
+python td2/C/scripts/age_guard_td2.py <student-kit-dir>   # the reference check, executed
 ```
 
 `<student-kit-dir>` is the local student kit that holds `data/boutique.sqlite`. The database is
