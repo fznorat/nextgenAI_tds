@@ -1,6 +1,6 @@
 # TD 2 — Pair C: Step 3, the routing rule
 
-Session: 18 November 2026. Sub-group 3 (DIA 1). Author: VERDES Adrian (pair C; add the second member here).
+Session: 18 November 2026. Sub-group 3 (DIA 1). Authors: VERDES Adrian, Richard KUETE, OUSSAMA KHADRAOUI, SAMSON Clément (pair C).
 
 **No new provider call was made.** All figures come from the 100 real TD 1 cells in
 [`../../td1/data/traces/traces-td1.csv`](../../td1/data/traces/traces-td1.csv) and from the final
