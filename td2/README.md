@@ -12,7 +12,7 @@ constructed example is used, it is labelled as such.
 | Step | Owner | Status | Where |
 |---|---|---|---|
 | Step 1 — the k-of-n vote (`vote_k_sur_n`, 2-of-3 versus 3-of-5 on twenty questions) | Pair A | **Complete** | section 1 |
-| Step 2 — the wrong consensus, its SQL cause and the delta query | Pair B | To complete by pair B | section 2 |
+| Step 2 — the wrong consensus, its SQL cause and the delta query | Pair B | **Complete** | section 2 |
 | Step 3 — the routing rule, the simulator, the priority analysis | **Pair C (VERDES Adrian)** | **Complete** | section 3 |
 
 ## 0. What is in this folder
@@ -25,6 +25,8 @@ constructed example is used, it is labelled as such.
 | [`scripts/atelier-routage.py`](scripts/atelier-routage.py) | The kit's simulator, unchanged, kept so the "before" output can be reproduced |
 | [`scripts/atelier-routage-td2.py`](scripts/atelier-routage-td2.py) | The simulator adapted to our rule: our models, our per-family eligibility, our checks, TD 1 cells in every reason |
 | [`scripts/age_guard_td2.py`](scripts/age_guard_td2.py) | The deterministic check the rule calls `reference`, executed on `data/boutique.sqlite` |
+| [`scripts/pair_b_wrong_consensus.py`](scripts/pair_b_wrong_consensus.py), [`scripts/delta_c10.sql`](scripts/delta_c10.sql), [`scripts/check_c10.sql`](scripts/check_c10.sql) | Step 2: shared wrong values, quorum verdicts, C10 delta query, independent check, DEMO-VOTE, cross-check with pair A |
+| [`outputs/wrong-consensus/`](outputs/wrong-consensus/) | Step 2 output |
 | [`outputs/routing/`](outputs/routing/) | Saved outputs: before, after, the rule table, the family rates, the check on the twenty questions |
 
 Reproduce everything from the repository root:
@@ -35,6 +37,7 @@ python td2/scripts/atelier-routage.py                      # before
 python td2/scripts/atelier-routage-td2.py --table          # after
 python td2/scripts/atelier-routage-td2.py --check-rates    # embedded rates vs the CSV
 python td2/scripts/age_guard_td2.py <student-kit-dir>      # the reference check on C01..C20
+python td2/scripts/pair_b_wrong_consensus.py --db <student-kit-dir>/data/boutique.sqlite   # step 2
 ```
 
 ---
@@ -109,15 +112,137 @@ Files: [`scripts/step1_table.py`](scripts/step1_table.py), [`analysis/csv/step1-
 
 ## 2. Step 2 — the wrong consensus (pair B)
 
-To complete by pair B: the question, the agreeing models, the faulty `WHERE`/`JOIN` clause, the two
-complete SQL queries, and the delta `SELECT` on `data/boutique.sqlite` that accounts for the exact
-gap in cents.
+**Nature of the data:** real TD 1 traces (`nature = real`, last attempt per model and question), no new provider call. All SQL below was executed read-only on `data/boutique.sqlite` (student kit). The only constructed material is DEMO-VOTE (2.6), labelled as such.
 
-The case is in our own batch, so no supplied case is needed: on **`C10`** (age at the time of the
-order) `cohere/north-mini-code:free`, `qwen/qwen3.8-27b` and `dots-3-note-preview:free` all return
-**119410** instead of **558980**, a gap of **−439570 cents**. Pair C quantified the consequence for
-the panels (section 3.2) and wrote the check that rejects the value (section 3.4); the SQL root cause
-and the delta query remain pair B's deliverable.
+Evidence: [`scripts/pair_b_wrong_consensus.py`](scripts/pair_b_wrong_consensus.py) (scan, votes, C10 replay, delta, independent check, DEMO-VOTE, cross-check with pair A), output in [`outputs/wrong-consensus/pair_b_output.txt`](outputs/wrong-consensus/pair_b_output.txt); standalone SQL: [`scripts/delta_c10.sql`](scripts/delta_c10.sql), [`scripts/check_c10.sql`](scripts/check_c10.sql).
+
+```powershell
+python td2/scripts/pair_b_wrong_consensus.py --db <student-kit-dir>/data/boutique.sqlite
+```
+
+### 2.1 Shared wrong values in the 100 cells
+
+Search: verdict `incorrect`, same question, identical value, at least two distinct models among the five (20B and Dots included). Only `correct`/`incorrect` cells with a value vote; `sql_invalid` stays in n without a vote.
+
+| Case | Shared wrong value | Models agreeing | Reference | 2-of-3 panel (120B, Cohere, Qwen) | 3-of-5 quorum (all five) |
+|---|---|---|---|---|---|
+| C02 | 0 | 20B, Dots | 590320 | 590320 (2 votes: 120B, Qwen), correct; Cohere `sql_invalid` stays in n | **abstain**: 590320 ×2, 0 ×2, Cohere no vote |
+| C08 | 0 | Cohere, Dots | 605580 | 605580 (2 votes), correct | 605580 (3 votes: 120B, 20B, Qwen), correct |
+| **C10** | **119410** | **Cohere, Qwen, Dots** | **558980** | **119410 (2 votes), WRONG CONSENSUS** | **119410 (3 votes), WRONG CONSENSUS** |
+| C15 | 0 | Cohere, Qwen | 168680 | **0 (2 votes), WRONG CONSENSUS** | abstain: 168680 ×2, 0 ×2, 138920 ×1 |
+
+Votes counted by hand, then recomputed with pair A's `vote_k_sur_n` (section 1): **8 decisions out of 8 identical, 0 differences**. `atelier-vote.py --case C10` returns `{"consensus": true, "value": 119410, "votes": 2, "models": ["openrouter:cohere/north-mini-code:free", "groq:qwen/qwen3.8-27b"]}`, `matches_reference: false`.
+
+**Selected case: C10**, the only one where the shared wrong value wins **both** quorums: the third wrong vote (Dots) is outside the panel, so widening to 3-of-5 adds a wrong vote instead of an independent one. C15 shows the opposite effect (3-of-5 turns a wrong consensus into an abstention), and C02 shows the cost (3-of-5 abstains where the panel was right).
+
+### 2.2 Identification — C10
+
+| Model | In 2-of-3 panel | Verdict | Value |
+|---|---|---|---|
+| openai/gpt-oss-120b (Groq) | yes | correct | 558980 |
+| openai/gpt-oss-20b (Groq) | no | correct | 558980 |
+| cohere/north-mini-code:free (OpenRouter) | yes | incorrect | 119410 |
+| qwen/qwen3.8-27b (Groq) | yes | incorrect | 119410 |
+| dots-studio/dots-3-note-preview:free (OpenRouter) | no | incorrect | 119410 |
+
+Question C10 (family F2b): revenue excl. VAT, in cents, of the orders placed by customers exactly 25 years old **at the time of the order**. Independent reference ([`reference-td1.csv`](../td1/data/references/reference-td1.csv)): **558980**. Gap: **439570 cents**. All five cells are attempt 1; replaying the five stored SQL statements on the base gives exactly the values in the traces.
+
+### 2.3 Faulty SQL clause
+
+Completed age 25 at the order date ⇔ `date(o.date,'-26 years') < birth_date <= date(o.date,'-25 years')`. This window covers **two** situations:
+
+- **(a)** year difference = 25 **and** birthday already reached in the order year;
+- **(b)** year difference = 26 **and** birthday **not yet** reached. Real example: C007, born 2000-11-30, orders on 2026-01-20: year difference 26, but turns 26 only on 2026-11-30, so is still 25.
+
+Faulty queries, verbatim from the traces:
+
+```sql
+-- cohere/north-mini-code:free -> 119410
+SELECT COALESCE(SUM(o.quantity_product * p.price), 0) AS revenue_cents
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+JOIN product p ON o.product_id = p.product_id
+WHERE CAST(strftime('%Y', o.date) - strftime('%Y', c.birth_date) AS INTEGER) = 25
+  AND CAST(strftime('%m-%d', o.date) >= CAST(strftime('%m-%d', c.birth_date) AS TEXT) AS INTEGER) = 1;
+
+-- qwen/qwen3.8-27b -> 119410
+SELECT COALESCE(SUM(o.quantity_product * p.price), 0) AS revenue_cents
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+JOIN product p ON o.product_id = p.product_id
+WHERE ((strftime('%Y', o.date) - strftime('%Y', c.birth_date)) = 25
+       AND (strftime('%m', o.date) || strftime('%d', o.date)) >= (strftime('%m', c.birth_date) || strftime('%d', c.birth_date)))
+   OR ((strftime('%Y', o.date) - strftime('%Y', c.birth_date)) = 24
+       AND (strftime('%m', o.date) || strftime('%d', o.date)) < (strftime('%m', c.birth_date) || strftime('%d', c.birth_date)));
+
+-- dots-studio/dots-3-note-preview:free -> 119410
+SELECT COALESCE(SUM(o.quantity_product * p.price), 0) AS revenue_cents
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+JOIN product p ON o.product_id = p.product_id
+WHERE CAST(strftime('%Y', o.date) AS INTEGER) - CAST(strftime('%Y', c.birth_date) AS INTEGER) = 25
+  AND (CAST(strftime('%m', o.date) AS INTEGER) > CAST(strftime('%m', c.birth_date) AS INTEGER)
+       OR (CAST(strftime('%m', o.date) AS INTEGER) = CAST(strftime('%m', c.birth_date) AS INTEGER)
+           AND CAST(strftime('%d', o.date) AS INTEGER) >= CAST(strftime('%d', c.birth_date) AS INTEGER)));
+```
+
+Correct query for comparison (gpt-oss-120b, 558980): `WHERE date(o.date) >= date(c.birth_date, '+25 years') AND date(o.date) < date(c.birth_date, '+26 years')`.
+
+**Root cause (the `WHERE` condition):**
+
+- **Cohere and Dots** test only (a): `year difference = 25 AND birthday reached`. Case (b) is never tested.
+- **Qwen** adds a second branch but writes `= 24` instead of `= 26`: `year difference 24 AND birthday not reached` describes a customer aged **23**. On the base this branch matches **0 order lines**, so Qwen also computes (a) only.
+- Three different syntaxes (`'%m-%d'` string, `'%m'||'%d'` concatenation, integers), three providers, **one shared logical gap**, hence one identical wrong value. `COALESCE` and the absence of any SQL error make 119410 look plausible.
+
+### 2.4 Delta diagnostic query (executed on `data/boutique.sqlite`)
+
+Rows counted by the reference but missed by the three faulty queries ([`scripts/delta_c10.sql`](scripts/delta_c10.sql)):
+
+```sql
+SELECT c.customer_id, c.birth_date,
+       COUNT(*) AS order_lines,
+       SUM(o.quantity_product * p.price) AS revenue_cents
+FROM orders o
+JOIN customers c ON c.customer_id = o.customer_id
+JOIN product p ON p.product_id = o.product_id
+WHERE c.birth_date > date(o.date, '-26 years')                 -- reference window
+  AND c.birth_date <= date(o.date, '-25 years')
+  AND NOT (                                                    -- faulty condition
+    CAST(strftime('%Y', o.date) AS INTEGER) - CAST(strftime('%Y', c.birth_date) AS INTEGER) = 25
+    AND strftime('%m-%d', o.date) >= strftime('%m-%d', c.birth_date)
+  )
+GROUP BY c.customer_id, c.birth_date
+ORDER BY c.customer_id;
+```
+
+| customer_id | birth_date | order lines | first order | last order | revenue_cents |
+|---|---|---|---|---|---|
+| C004 | 2000-09-25 | 17 | 2026-01-22 | 2026-06-15 | 150260 |
+| C005 | 2000-09-26 | 20 | 2026-01-06 | 2026-08-29 | 150240 |
+| C007 | 2000-11-30 | 18 | 2026-01-20 | 2026-08-19 | 118740 |
+| C022 | 2000-08-14 | 4 | 2026-04-01 | 2026-05-25 | 20330 |
+| **Total** | | **59** | | | **439570** |
+
+- **119410 + 439570 = 558980**: the four customers account for the entire gap, to the cent. All were born in 2000 and ordered in 2026 before their 26th birthday (case b).
+- **Wrongly added rows:** the inverse query (faulty condition true, reference window false) returns **0 rows**. The error is a pure omission.
+- One-line control ([`scripts/check_c10.sql`](scripts/check_c10.sql)): `(reference, case a only, case b missed) = (558980, 119410, 439570)`.
+
+### 2.5 Independent check
+
+Not reusing any SQL window: Python reads every order line and computes the completed age at the order date as `year difference − 1 if (month, day) of the order < (month, day) of the birth`. Age-25 revenue = **558980** (equals the reference); of which orders with year difference 26 = **439570** (equals the delta).
+
+### 2.6 Mechanism illustrated — DEMO-VOTE (*constructed teaching example, not model output*)
+
+One-row toy table: sale on 2026-01-01, 100 cents; period [2026-01-01, 2026-01-02). `sale_date > '2026-01-01'` → **0** (the boundary day is excluded); `sale_date >= '2026-01-01'` → **100**. Proposals [0, 0, 100], 2-of-3 → **0 kept with 2 votes**, reference 100. The vote measures agreement, not correctness. C10 is the same mechanism on real data: a shared boundary omission (case b) outvotes the right answer.
+
+### 2.7 Consequence for checking
+
+- **A quorum only protects against independent errors.** On C10 three families share the same shortcut; raising n from 3 to 5 made the wrong consensus stronger (3 votes).
+- For the age families (F2, F2b), a free-model quorum is not enough for a figure shown to a customer or a payout: a **deterministic check** is required. This is the `reference` check of the rule (section 3.4), which rejects 119410 on C10.
+- Complementary test before trusting a query: a fixed set of boundary customers (birthday the day before, the day of and the day after the order date; year difference 25 versus 26).
+- 3-of-5 is not uniformly safer than 2-of-3: it fixes C15, abstains on C02 where the panel was right, and changes nothing on C10.
+- Limitation: one batch of 20 questions × 5 models shows a mechanism, not an error rate.
+- AI assistance was used to help write the diagnostic queries and this section; the queries were executed and the results checked by the pair on `data/boutique.sqlite`.
 
 ---
 
@@ -445,14 +570,14 @@ that the cheapest adequate check is not a bigger quorum but a deterministic reco
 |---|---|---|
 | VERDES Adrian | **C** | Step 3 in full: per-family TD 1 rates and the script that derives them, quorum cross-check, the one-page rule, the adapted simulator, the deterministic `reference` check, the priority analysis, this report's section 3 and the repository restructuring |
 | PERKINS Luca | A | Step 1: `vote_k_sur_n`, the four synthetic examples, the twenty-question 2-of-3 versus 3-of-5 table |
-| — | B | Step 2: the wrong consensus, the faulty SQL clause, the delta query on `data/boutique.sqlite` |
+| SAAID Myriam, DE GENTILE Océane | B | Step 2: scan of the 100 cells, quorum verdicts, C10 SQL root cause, delta query and independent check on `data/boutique.sqlite`, DEMO-VOTE, cross-check with pair A's vote, this report's section 2 |
 
 To be completed with names by pairs A and B before hand-in.
 
 ## 5. Next steps
 
 - Pair A: section 1 is filled and was compared with the cross-check table in 3.2 cell by cell (0 differences); remaining: cross-review of sections 2 and 3.
-- Pair B: fill section 2 with the two complete queries and the delta `SELECT` for C10.
+- Pair B: section 2 is filled; votes cross-checked with pair A's `vote_k_sur_n` (8/8 identical); remaining: cross-review of sections 1 and 3.
 - Everyone, before 17:15: each pair walks the others through its code, SQL and routing decisions.
 - Hand-in: commit the report with the code and evidence, then update the Moodle entry with the
   repository URL, the session's full commit hash and a link to this report at that commit. Check
