@@ -1,8 +1,6 @@
 # TD 2 — Cross-review by pair A of pair B (Step 2, wrong consensus on C10)
 
-Reviewer: pair A (PERKINS Luca). Session of 18 November 2026. Reviewed: [`../B/README.md`](../B/README.md) and the files of [`../B/`](../B/) at commit `4542736`.
-
-Declaration: the review was prepared with Claude's help. The re-runs are in [`outputs/review/rerun-b-c-scripts.txt`](outputs/review/rerun-b-c-scripts.txt) and [`outputs/review/review_check_output.txt`](outputs/review/review_check_output.txt); the independent checks are in [`scripts/review_check.py`](scripts/review_check.py).
+Reviewer: pair A (PERKINS Luca NORAT Faizan). Session of 18 November 2026. Reviewed: [`../B/README.md`](../B/README.md) and the files of [`../B/`](../B/) at commit `4542736`.
 
 ## Reproduced?
 
