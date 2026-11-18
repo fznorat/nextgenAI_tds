@@ -7,9 +7,6 @@ Objet relu : [`../B/README.md`](../B/README.md),
 [`../B/scripts/check_c10.sql`](../B/scripts/check_c10.sql) et
 [`../B/outputs/wrong-consensus/pair_b_output.txt`](../B/outputs/wrong-consensus/pair_b_output.txt).
 
-Déclaration : relecture préparée avec l'aide de Claude ; les commandes et les lectures de SQL
-ci-dessous ont été refaites par le binôme C.
-
 ## 1. Ce que nous avons revérifié
 
 | Vérification | Résultat |
