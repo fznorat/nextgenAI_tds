@@ -1,8 +1,6 @@
 # TD 2 — Cross-review by pair A of pair C (Step 3, routing rule)
 
-Reviewer: pair A (PERKINS Luca). Session of 18 November 2026. Reviewed: [`../C/README.md`](../C/README.md) (sections 3.1 to 3.8 of the report) and the files of [`../C/`](../C/) at commit `4542736`. The kit's `atelier-routage.py` is the reference for `choose`.
-
-Declaration: the review was prepared with Claude's help. The re-runs are in [`outputs/review/rerun-b-c-scripts.txt`](outputs/review/rerun-b-c-scripts.txt) and [`outputs/review/review_check_output.txt`](outputs/review/review_check_output.txt); the independent checks are in [`scripts/review_check.py`](scripts/review_check.py).
+Reviewer: pair A (PERKINS Luca NORAT Faizan). Session of 18 November 2026. Reviewed: [`../C/README.md`](../C/README.md) (sections 3.1 to 3.8 of the report) and the files of [`../C/`](../C/) at commit `4542736`. The kit's `atelier-routage.py` is the reference for `choose`.
 
 ## Reproduced?
 
