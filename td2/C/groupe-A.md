@@ -7,8 +7,6 @@ Objet relu : [`../A/README.md`](../A/README.md), `Orchestrateur.vote_k_sur_n` da
 [`../A/analysis/csv/step1-table.csv`](../A/analysis/csv/step1-table.csv) et
 [`../A/outputs/vote/votes-20-questions-2of3.jsonl`](../A/outputs/vote/votes-20-questions-2of3.jsonl).
 
-Déclaration : relecture préparée avec l'aide de Claude ; les commandes ci-dessous ont été relancées
-par le binôme C.
 
 ## 1. Ce que nous avons revérifié
 
