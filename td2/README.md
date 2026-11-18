@@ -399,13 +399,3 @@ that the cheapest adequate check is not a bigger quorum but a deterministic reco
 | PERKINS Luca, NORAT Faizan | A | Step 1: `vote_k_sur_n`, the four synthetic examples, the twenty-question 2-of-3 versus 3-of-5 table |
 | SAAID Myriam, DE GENTILE Océane | B | Step 2: scan of the 100 cells, quorum verdicts, C10 SQL root cause, delta query and independent check on `data/boutique.sqlite`, DEMO-VOTE, cross-check with pair A's vote, this report's section 2 |
 
-
-
-## 5. Next steps
-
-- Pair A: section 1 is filled and was compared with the cross-check table in 3.2 cell by cell (0 differences); remaining: cross-review of sections 2 and 3.
-- Pair B: section 2 is filled; votes cross-checked with pair A's `vote_k_sur_n` (8/8 identical); remaining: cross-review of sections 1 and 3.
-- Everyone, before 17:15: each pair walks the others through its code, SQL and routing decisions.
-- Hand-in: commit the report with the code and evidence, then update the Moodle entry with the
-  repository URL, the session's full commit hash and a link to this report at that commit. Check
-  that the repository opens without signing in.
