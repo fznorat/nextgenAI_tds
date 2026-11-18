@@ -1,13 +1,11 @@
 # TD 2 — Pair A: Step 1, the k-of-n vote
 
-Session: 18 November 2026. Sub-group 3 (DIA 1). Author: PERKINS Luca (pair A; second member: to be added).
+Session: 18 November 2026. Sub-group 3 (DIA 1). Author: PERKINS Luca NORAT Faizan
 
 **No new provider call was made.** All figures come from the 100 real TD 1 cells in [`../../td1/data/traces/traces-td1.csv`](../../td1/data/traces/traces-td1.csv).
 
 
 **Nature of the data:** real TD 1 traces (`nature = real`, final attempt per model and question), no new provider call. Model letters A–E are the TD 1 models, not the session pairs: A = `openai/gpt-oss-120b`, B = `openai/gpt-oss-20b`, C = `cohere/north-mini-code:free`, D = `qwen/qwen3.8-27b`, E = `dots-studio/dots-3-note-preview:free`.
-
-**Declaration:** the code of `vote_k_sur_n` was written with Claude's help; pair A read it, ran it and tested it on its own machines.
 
 **Method** ([`scripts/skeleton-multi-llm-en.py`](scripts/skeleton-multi-llm-en.py), only `Orchestrateur.vote_k_sur_n` changed):
 
