@@ -1,4 +1,4 @@
-# TD 2 — Pair B: Step 2, the wrong consensus
+# TD 2, Pair B: Step 2, the wrong consensus
 
 Session: 18 November 2026. Sub-group 3 (DIA 1). Pair B: SAAID Myriam, DE GENTILE Océane.
 
@@ -13,6 +13,7 @@ Session: 18 November 2026. Sub-group 3 (DIA 1). Pair B: SAAID Myriam, DE GENTILE
 | [`scripts/pair_b_wrong_consensus.py`](scripts/pair_b_wrong_consensus.py) | Scan of the 100 cells, 2-of-3 and 3-of-5 votes, C10 replay, delta query, independent Python check, DEMO-VOTE, cross-check with pair A's `vote_k_sur_n` |
 | [`scripts/delta_c10.sql`](scripts/delta_c10.sql) | The delta diagnostic query (rows missed by the faulty queries) |
 | [`scripts/check_c10.sql`](scripts/check_c10.sql) | One-line control: reference, case (a) only, case (b) missed |
+| [`scripts/delta_c15_dots.sql`](scripts/delta_c15_dots.sql) | Delta on C15 for Dots: the same case (b) omission as on C10 |
 | [`outputs/wrong-consensus/pair_b_output.txt`](outputs/wrong-consensus/pair_b_output.txt) | Saved output of the script |
 
 **Reproduce** from the repository root:
@@ -25,18 +26,25 @@ python td2/B/scripts/pair_b_wrong_consensus.py --db <student-kit-dir>/data/bouti
 
 Search: verdict `incorrect`, same question, identical value, at least two distinct models among the five (20B and Dots included). Only `correct`/`incorrect` cells with a value vote; `sql_invalid` stays in n without a vote.
 
-| Case | Shared wrong value | Models agreeing | Reference | 2-of-3 panel (120B, Cohere, Qwen) | 3-of-5 quorum (all five) |
-|---|---|---|---|---|---|
-| C02 | 0 | 20B, Dots | 590320 | 590320 (2 votes: 120B, Qwen), correct; Cohere `sql_invalid` stays in n | **abstain**: 590320 ×2, 0 ×2, Cohere no vote |
-| C08 | 0 | Cohere, Dots | 605580 | 605580 (2 votes), correct | 605580 (3 votes: 120B, 20B, Qwen), correct |
-| **C10** | **119410** | **Cohere, Qwen, Dots** | **558980** | **119410 (2 votes), WRONG CONSENSUS** | **119410 (3 votes), WRONG CONSENSUS** |
-| C15 | 0 | Cohere, Qwen | 168680 | **0 (2 votes), WRONG CONSENSUS** | abstain: 168680 ×2, 0 ×2, 138920 ×1 |
+| Case | Shared wrong value | Models agreeing | Nature of the agreement | Reference | 2-of-3 panel (120B, Cohere, Qwen) | 3-of-5 quorum (all five) |
+|---|---|---|---|---|---|---|
+| C02 | 0 | 20B, Dots | convergence on 0 (two different empty filters) | 590320 | 590320 (2 votes: 120B, Qwen), correct; Cohere `sql_invalid` stays in n | **abstain**: 590320 ×2, 0 ×2, Cohere no vote |
+| C08 | 0 | Cohere, Dots | convergence on 0 (two different empty filters) | 605580 | 605580 (2 votes), correct | 605580 (3 votes: 120B, 20B, Qwen), correct |
+| **C10** | **119410** | **Cohere, Qwen, Dots** | **shared logic (case b omitted)** | **558980** | **119410 (2 votes), WRONG CONSENSUS** | **119410 (3 votes), WRONG CONSENSUS** |
+| C15 | 0 | Cohere, Qwen | convergence on 0 (two different empty filters) | 168680 | **0 (2 votes), WRONG CONSENSUS** | abstain: 168680 ×2, 0 ×2, 138920 ×1 |
 
 Votes counted by hand, then recomputed with pair A's `vote_k_sur_n` ([`../A/scripts/skeleton-multi-llm-en.py`](../A/scripts/skeleton-multi-llm-en.py)): **8 decisions out of 8 identical, 0 differences**. `atelier-vote.py --case C10` returns `{"consensus": true, "value": 119410, "votes": 2, "models": ["openrouter:cohere/north-mini-code:free", "groq:qwen/qwen3.8-27b"]}`, `matches_reference: false`.
 
+**Two natures of wrong consensus** (point raised by pair C's review, [`../C/groupe-B.md`](../C/groupe-B.md), and checked by us on the SQL of the traces):
+
+- **Shared logic (C10):** three models from three providers write the same reasoning gap, so they return the same wrong value for the same reason.
+- **Convergence on 0 (C02, C08, C15):** the two agreeing models have *different* bugs, but each bug leaves the filter empty, and `COALESCE(SUM(...), 0)` turns any empty filter into 0. On C02, 20B searches births between 2025-09-25 and 2026-09-25 (age 0) while Dots requires month-day both `<= '09-25'` and `> '09-25'` (impossible). On C08, Cohere compares a negative year difference with 0 or 1 while Dots keeps only births on 09-24 after 2001-09-24. On C15, Qwen requires a month-day window that excludes every birth date and has no condition on the year, while Cohere's two branches are contradictory.
+
+0 is therefore an **attractor value**: independent errors can still agree on it. It cannot simply be excluded from the vote, since C06 and C14 are genuinely 0; a 0 should instead trigger a cheap check (row count of the filter, or the deterministic `reference` check).
+
 **Selected case: C10**, the only one where the shared wrong value wins **both** quorums: the third wrong vote (Dots) is outside the panel, so widening to 3-of-5 adds a wrong vote instead of an independent one. C15 shows the opposite effect (3-of-5 turns a wrong consensus into an abstention), and C02 shows the cost (3-of-5 abstains where the panel was right).
 
-## 2. Identification — C10
+## 2. Identification: C10
 
 | Model | In 2-of-3 panel | Verdict | Value |
 |---|---|---|---|
@@ -132,13 +140,14 @@ ORDER BY c.customer_id;
 
 Not reusing any SQL window: Python reads every order line and computes the completed age at the order date as `year difference − 1 if (month, day) of the order < (month, day) of the birth`. Age-25 revenue = **558980** (equals the reference); of which orders with year difference 26 = **439570** (equals the delta).
 
-## 6. Mechanism illustrated — DEMO-VOTE (*constructed teaching example, not model output*)
+## 6. Mechanism illustrated: DEMO-VOTE (*constructed teaching example, not model output*)
 
 One-row toy table: sale on 2026-01-01, 100 cents; period [2026-01-01, 2026-01-02). `sale_date > '2026-01-01'` → **0** (the boundary day is excluded); `sale_date >= '2026-01-01'` → **100**. Proposals [0, 0, 100], 2-of-3 → **0 kept with 2 votes**, reference 100. The vote measures agreement, not correctness. C10 is the same mechanism on real data: a shared boundary omission (case b) outvotes the right answer.
 
 ## 7. Consequence for checking
 
-- **A quorum only protects against independent errors.** On C10 three families share the same shortcut; raising n from 3 to 5 made the wrong consensus stronger (3 votes).
+- **A quorum is not a proof of correctness, for two reasons.** Correlated errors (C10: three families share the same shortcut; raising n from 3 to 5 made the wrong consensus stronger, 3 votes) and convergence on an attractor value (C15: two *independent* bugs both return 0, and the 2-of-3 panel keeps 0).
+- **The case (b) omission is systematic for Dots, not accidental.** On C15 Dots returns 138920 with `year difference = 25 AND birthday <= 09-25`: the same gap as on C10. Delta query [`scripts/delta_c15_dots.sql`](scripts/delta_c15_dots.sql), executed on `data/boutique.sqlite`: C005 (born 2000-09-26, 3 order lines, 17540 cents) and C007 (born 2000-11-30, 3 order lines, 12220 cents), total **29760** = 168680 − 138920.
 - For the age families (F2, F2b), a free-model quorum is not enough for a figure shown to a customer or a payout: a **deterministic check** is required. This is the `reference` check of pair C's rule ([`../README.md`](../README.md), section 3.4), which rejects 119410 on C10.
 - Complementary test before trusting a query: a fixed set of boundary customers (birthday the day before, the day of and the day after the order date; year difference 25 versus 26).
 - 3-of-5 is not uniformly safer than 2-of-3: it fixes C15, abstains on C02 where the panel was right, and changes nothing on C10.
