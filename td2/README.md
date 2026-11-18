@@ -16,21 +16,44 @@ unchanged: see [`../td1/prompt-td1.md`](../td1/prompt-td1.md).
 |---|---|---|---|
 | Step 1 — the k-of-n vote (`vote_k_sur_n`, 2-of-3 versus 3-of-5 on twenty questions) | Pair A | **Complete** | section 1 |
 | Step 2 — the wrong consensus, its SQL cause and the delta query | Pair B | **Complete** | section 2 |
-| Step 3 — the routing rule, the simulator, the priority analysis | **Pair C (VERDES Adrian)** | **Complete** | section 3 |
+| Step 3 — the routing rule, the simulator, the priority analysis | **Pair C** | **Complete** | section 3 |
 
 ## 0. What is in this folder
 
-| File | What it is |
-|---|---|
-| [`C/scripts/family_rates_td2.py`](C/scripts/family_rates_td2.py) | Derives the exact TD 1 rate of every question family, and what a 2-of-3 panel, a 3-of-5 quorum and our own panels would have returned. Writes the two CSV files below. |
-| [`C/analysis/csv/family-rates-td1.csv`](C/analysis/csv/family-rates-td1.csv) | `correct / cases` per family and per model, with every failing cell named |
-| [`C/analysis/csv/quorum-by-family-td1.csv`](C/analysis/csv/quorum-by-family-td1.csv) | One row per question: decision, value, votes and agreement with the reference, for the three configurations |
-| [`C/scripts/atelier-routage.py`](C/scripts/atelier-routage.py) | The kit's simulator, unchanged, kept so the "before" output can be reproduced |
-| [`C/scripts/atelier-routage-td2.py`](C/scripts/atelier-routage-td2.py) | The simulator adapted to our rule: our models, our per-family eligibility, our checks, TD 1 cells in every reason |
-| [`C/scripts/age_guard_td2.py`](C/scripts/age_guard_td2.py) | The deterministic check the rule calls `reference`, executed on `data/boutique.sqlite` |
-| [`A/`](A/) | Step 1 (pair A): write-up [`A/README.md`](A/README.md), `vote_k_sur_n` in the skeleton, tests, twenty-question table and output |
-| [`B/`](B/) | Step 2 (pair B): write-up [`B/README.md`](B/README.md), scripts, delta SQL and output |
-| [`C/outputs/routing/`](C/outputs/routing/) | Saved outputs: before, after, the rule table, the family rates, the check on the twenty questions |
+Each pair's write-up, scripts, outputs and cross-review notes sit in its own folder (`A/`, `B/`, `C/`).
+
+| Pair | File | What it is |
+|---|---|---|
+| A | [`A/README.md`](A/README.md) | Step 1 write-up: method, the vote contract, tests, the twenty-question 2-of-3 versus 3-of-5 table, the three decisions that change, cross-check with pair C |
+| A | [`A/scripts/skeleton-multi-llm-en.py`](A/scripts/skeleton-multi-llm-en.py) | The kit skeleton with `Orchestrateur.vote_k_sur_n` completed (strict majority, abstention, errors stay in n, duplicates refused); the only function changed |
+| A | [`A/scripts/atelier-vote.py`](A/scripts/atelier-vote.py) | The kit's vote workshop, unchanged: four synthetic examples, or the stored traces of one question with `--case` |
+| A | [`A/scripts/sandbox_sqlite.py`](A/scripts/sandbox_sqlite.py) | The kit's read-only SQLite sandbox, unchanged, needed by the skeleton |
+| A | [`A/scripts/test_vote.py`](A/scripts/test_vote.py) | 15 offline checks of the vote contract (invalid k, empty panel, duplicate model, errors, 0 as a value); prints `all tests passed` |
+| A | [`A/scripts/step1_table.py`](A/scripts/step1_table.py) | Builds the twenty-question table from the real TD 1 traces, using the same `vote_k_sur_n` for both quorums |
+| A | [`A/analysis/csv/step1-table.csv`](A/analysis/csv/step1-table.csv) | The twenty-question table: reference, the five models, 2-of-3 and 3-of-5 decisions and votes, agreement with the reference, decisions that change |
+| A | [`A/outputs/vote/votes-20-questions-2of3.jsonl`](A/outputs/vote/votes-20-questions-2of3.jsonl) | One `atelier-vote.py` line per question for the fixed 2-of-3 panel (decision, votes, voters, reference) |
+| A | [`A/scripts/review_check.py`](A/scripts/review_check.py) | Independent checks used for the cross-review of pairs B and C (C10 queries and delta, per-family rates, HTTP 429 cells, token medians) |
+| A | [`A/outputs/review/`](A/outputs/review/) | Saved outputs of the re-runs of pair B's and pair C's scripts and of `review_check.py` |
+| A | [`A/groupe-B.md`](A/groupe-B.md) | Cross-review of pair B (step 2) by pair A |
+| A | [`A/groupe-C.md`](A/groupe-C.md) | Cross-review of pair C (step 3) by pair A |
+| B | [`B/README.md`](B/README.md) | Step 2 write-up: shared wrong values in the 100 cells, nature of the agreement, C10 SQL root cause, delta query, C15, DEMO-VOTE, cross-check with pair A |
+| B | [`B/scripts/pair_b_wrong_consensus.py`](B/scripts/pair_b_wrong_consensus.py) | Scan of the 100 cells, 2-of-3 and 3-of-5 votes, C10 replay, delta query, independent Python check, DEMO-VOTE, cross-check with pair A's `vote_k_sur_n` |
+| B | [`B/scripts/delta_c10.sql`](B/scripts/delta_c10.sql) | The delta diagnostic query: the rows missed by the faulty C10 queries |
+| B | [`B/scripts/check_c10.sql`](B/scripts/check_c10.sql) | One-line control: reference, case (a) only, case (b) missed |
+| B | [`B/scripts/delta_c15_dots.sql`](B/scripts/delta_c15_dots.sql) | Delta on C15 for Dots: the same case (b) omission as on C10 |
+| B | [`B/outputs/wrong-consensus/pair_b_output.txt`](B/outputs/wrong-consensus/pair_b_output.txt) | Saved output of `pair_b_wrong_consensus.py` |
+| B | [`B/groupe-A.md`](B/groupe-A.md) | Cross-review of pair A (step 1) by pair B |
+| B | [`B/groupe-C.md`](B/groupe-C.md) | Cross-review of pair C (step 3) by pair B |
+| C | [`C/scripts/family_rates_td2.py`](C/scripts/family_rates_td2.py) | Derives the exact TD 1 rate of every question family, and what a 2-of-3 panel, a 3-of-5 quorum and our own panels would have returned. Writes the two CSV files below. |
+| C | [`C/analysis/csv/family-rates-td1.csv`](C/analysis/csv/family-rates-td1.csv) | `correct / cases` per family and per model, with every failing cell named |
+| C | [`C/analysis/csv/quorum-by-family-td1.csv`](C/analysis/csv/quorum-by-family-td1.csv) | One row per question: decision, value, votes and agreement with the reference, for the three configurations |
+| C | [`C/scripts/atelier-routage.py`](C/scripts/atelier-routage.py) | The kit's simulator, unchanged, kept so the "before" output can be reproduced |
+| C | [`C/scripts/atelier-routage-td2.py`](C/scripts/atelier-routage-td2.py) | The simulator adapted to our rule: our models, our per-family eligibility, our checks, TD 1 cells in every reason |
+| C | [`C/scripts/age_guard_td2.py`](C/scripts/age_guard_td2.py) | The deterministic check the rule calls `reference`, executed on `data/boutique.sqlite` |
+| C | [`C/outputs/routing/`](C/outputs/routing/) | Saved outputs: before, after, the rule table, the family rates, the check on the twenty questions |
+| C | [`C/README.md`](C/README.md) | Step 3 write-up: per-family TD 1 rates, quorum cross-check, the one-page routing rule, the adapted simulator, the deterministic check, the priority analysis |
+| C | [`C/groupe-A.md`](C/groupe-A.md) | Cross-review of pair A (step 1) by pair C |
+| C | [`C/groupe-B.md`](C/groupe-B.md) | Cross-review of pair B (step 2) by pair C |
 
 Reproduce everything from the repository root:
 
