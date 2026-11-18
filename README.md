@@ -6,7 +6,7 @@ One folder per session, each with its own report.
 | Folder | Session | Report | Status |
 |---|---|---|---|
 | [`td1/`](td1/) | TD 1 — five models write SQL, measured against our own reference | [`td1/td1.md`](td1/td1.md) | Complete, 100/100 cells |
-| [`td2/`](td2/) | TD 2 — the quorum, then the routing rule | [`td2/td2.md`](td2/td2.md) | Step 3 (pair C) complete; steps 1 and 2 with pairs A and B |
+| [`td2/`](td2/) | TD 2 — the quorum, then the routing rule | [`td2/README.md`](td2/README.md) | Step 3 (pair C) complete; steps 1 and 2 with pairs A and B |
 | [`td3/`](td3/) | TD 3 — configuration, cost and demonstration | [`td3/td3.md`](td3/td3.md) | Not started |
 
 Each folder keeps its own `data/`, `analysis/`, `scripts/` and `outputs/` so a session can be
