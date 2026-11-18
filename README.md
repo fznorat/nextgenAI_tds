@@ -1,89 +1,68 @@
-# NextGenAI — TD1 to TD3
+# NextGenAI — TD 1 to TD 3
 
-## Group (DIA 1 - SUB GROUP 3)
+Shared repository of **DIA 1, sub-group 3** for the module *Trustworthy generative AI* (ESILV).
+One folder per session, each with its own report.
 
-- **Course:** Next Generation AI — ESILV
-- **Student kit version:** `2026-10-21`
-- **Repository:** Shared group repository for TD1, TD2 and TD3
-- **Group members:**
-  - NORAT Faizan
-  - PERKINS Luca
-  - DE GENTILE Océane
-  - SAAID Myriam
-  - Khadraoui Oussama
-  - Richard kuete
-  - VERDES Adrian
-  - Samson Clément
-  
+| Folder | Session | Report | Status |
+|---|---|---|---|
+| [`td1/`](td1/) | TD 1 — five models write SQL, measured against our own reference | [`td1/td1.md`](td1/td1.md) | Complete, 100/100 cells |
+| [`td2/`](td2/) | TD 2 — the quorum, then the routing rule | [`td2/td2.md`](td2/td2.md) | Step 3 (pair C) complete; steps 1 and 2 with pairs A and B |
+| [`td3/`](td3/) | TD 3 — configuration, cost and demonstration | [`td3/td3.md`](td3/td3.md) | Not started |
 
-## Project objective
+Each folder keeps its own `data/`, `analysis/`, `scripts/` and `outputs/` so a session can be
+read and reproduced on its own. TD 2 reads the TD 1 traces in place (`td1/data/`) and makes no new
+provider call.
 
-This repository documents our experiments with multiple language models, model comparison, multi-model voting, routing strategies and cost analysis.
+## Group
 
-We preserve the prompts, model outputs, reference answers, observations, limitations and unsuccessful attempts needed to understand and reproduce our work.
+- **Course:** Next Generation AI — ESILV, Didier Parisot
+- **Members:** NORAT Faizan · PERKINS Luca · DE GENTILE Océane · SAAID Myriam ·
+  KHADRAOUI Oussama · KUETE Richard · VERDES Adrian · SAMSON Clément
+- **Student kit:** pack `2026-10-21` for TD 1, pack `2026-11-18-students-5` for TD 2
 
 ## Environment
 
-- **Operating system:** Windows
-- **Python:** 3.12.12
-- **Virtual environment:** `.venv`
-- **Initial access check:** 5/5 required models passed on 17 October 2026
-- **Database and data integrity:** verified using the provided verification script
-
-The local access-check output is saved as `ready-for-td1.txt`. This file is intentionally excluded from the public repository.
-
-## Reproducing the environment checks
-
-Run these commands from the student kit directory, after configuring the required API keys as environment variables:
+- Windows, Python 3.12/3.13, virtual environment `.venv` (not committed)
+- Access check: 5/5 required models passed on 17 October 2026
+- Database and data integrity verified with the kit's verification script
 
 ```powershell
-.\.venv\Scripts\python.exe verify-data.py
+.\.venv\Scripts\python.exe verify-data.py      # from the student kit directory
 .\.venv\Scripts\python.exe check_access.py
 ```
 
-Never commit API keys, passwords, `.env` files or other credentials.
+The access-check output stays local (`ready-for-td1.txt`, ignored by git).
 
-## TD1 — Model comparison
+## Reproducing the analyses
 
-**Status:** Completed.
+Every script is standard library only, reads committed files and makes no network call.
 
-Planned documentation and outputs:
-- Reference questions: `reference-td1.csv`
-- Question set: `questions-td1.json`
-- Model configuration: `modeles-autorises.json`
-- Results and analyses: to be added after the experiments
-- Report: `reports/td1.md`
+```powershell
+# TD 1 — recompute the twenty references two independent ways
+python td1/scripts/check_references.py <student-kit-dir> td1/data/references/reference-td1.csv
 
-The report will document the experimental method, observations, reference comparisons, limitations and any failed or incomplete attempts.
+# TD 2 — per-family TD 1 rates, quorum behaviour, routing rule, deterministic check
+python td2/scripts/family_rates_td2.py --print
+python td2/scripts/atelier-routage.py                     # the kit's rule, before adaptation
+python td2/scripts/atelier-routage-td2.py --table         # our rule
+python td2/scripts/age_guard_td2.py <student-kit-dir>     # the reference check, executed
+```
 
-## TD2 — Multi-model voting and routing
+`<student-kit-dir>` is the local student kit that holds `data/boutique.sqlite`. The database is
+supplied by the course and is not committed here.
 
-**Status:** To be completed.
+## What this repository claims, and what it does not
 
-The report will document the voting and routing approach, tests, results, limitations and decisions.
-
-- Report: `reports/td2.md`
-
-## TD3 — Configuration, cost and demonstration
-
-**Status:** To be completed.
-
-The report will document the configuration, cost analysis, demonstration and conclusions.
-
-- Report: `reports/td3.md`
-
-## Decisions, limitations and open issues
-
-We distinguish observed results from hypotheses and interpretations. Any synthetic or replayed results will be clearly labelled and separated from real model outputs.
-
-Open questions and limitations will be documented in the relevant TD report.
-
-## Contributions
-
-Each member's work and responsibilities will be recorded as the project progresses.
+- All results come from **real** calls (`nature = real`); replayed or synthetic material is labelled
+  as such wherever it appears.
+- One run per cell at temperature 0 on twenty questions supports a **routing hypothesis for this
+  batch**, not a general error rate, a permanent model ranking, or any guarantee that a quorum
+  avoids errors. TD 2 shows a case where it does not (`C10`).
+- Prices and public indices come from the kit's dated snapshots. A missing price is written `N/A`,
+  never 0.
 
 ## Security
 
-- Never commit API keys, passwords or credentials.
-- Keep local environment files and virtual environments out of version control.
-- Check every file before committing it to this public repository.
+Never commit API keys, passwords, `.env` files or credentials. Local environments and virtual
+environments stay out of version control. Check every file before committing it to this public
+repository.

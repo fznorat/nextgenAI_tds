@@ -2,16 +2,18 @@
 
 Session: 21 October 2026. Kit: pack 2026-10-14. All rows in this report are **real** calls (`nature = real`); no replayed or simulated row is used.
 
+> Folder note: this session's data, scripts and outputs live in `td1/`; the paths below are relative to that folder. TD 2 reads them in place and adds no call. The wrong consensus flagged in section 3 (`C10`) is the case quantified in [`../td2/td2.md`](../td2/td2.md).
+
 ## 1. What we did
 
 | Step | Status | Evidence |
 |---|---|---|
-| Reference: 20 SQLite queries, executed and independently checked | Done, 20/20 | [`data/references/reference-td1.csv`](../data/references/reference-td1.csv), [`scripts/check_references.py`](../scripts/check_references.py), [`outputs/checks/check_references_output.txt`](../outputs/checks/check_references_output.txt) |
-| Batch: 20 questions x 5 models = 100 cells | Done, 100/100 cells executed | [`data/traces/`](../data/traces/), [`data/states/`](../data/states/) |
-| Merged trace table, one line per HTTP attempt | Done, 106 lines | [`data/traces/traces-td1.csv`](../data/traces/traces-td1.csv) |
-| Long comparison, one final row per model/question | Done, 100 rows | [`analysis/csv/model-question-comparison-en.csv`](../analysis/csv/model-question-comparison-en.csv) |
-| Models x questions matrix (pivot of the CSV above) | Done | [`analysis/spreadsheets/matrix-td1.xlsx`](../analysis/spreadsheets/matrix-td1.xlsx) |
-| Five-model summary | Done | [`analysis/csv/five-model-summary-en.csv`](../analysis/csv/five-model-summary-en.csv) |
+| Reference: 20 SQLite queries, executed and independently checked | Done, 20/20 | [`data/references/reference-td1.csv`](data/references/reference-td1.csv), [`scripts/check_references.py`](scripts/check_references.py), [`outputs/checks/check_references_output.txt`](outputs/checks/check_references_output.txt) |
+| Batch: 20 questions x 5 models = 100 cells | Done, 100/100 cells executed | [`data/traces/`](data/traces/), [`data/states/`](data/states/) |
+| Merged trace table, one line per HTTP attempt | Done, 106 lines | [`data/traces/traces-td1.csv`](data/traces/traces-td1.csv) |
+| Long comparison, one final row per model/question | Done, 100 rows | [`analysis/csv/model-question-comparison-en.csv`](analysis/csv/model-question-comparison-en.csv) |
+| Models x questions matrix (pivot of the CSV above) | Done | [`analysis/spreadsheets/matrix-td1.xlsx`](analysis/spreadsheets/matrix-td1.xlsx) |
+| Five-model summary | Done | [`analysis/csv/five-model-summary-en.csv`](analysis/csv/five-model-summary-en.csv) |
 | Prompt, verbatim | Done, unchanged skeleton prompt | [`prompt-td1.md`](prompt-td1.md) |
 
 ### Reference and independent check
