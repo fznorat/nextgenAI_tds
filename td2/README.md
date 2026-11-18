@@ -1,7 +1,5 @@
 # TD 2 report — the quorum, then the routing rule
 
-Session: 18 November 2026, 13:30 to 18:00. Kit: pack `2026-11-18-students-5`.
-Sub-group 3 (DIA 1).
 
 **No new provider call was made for TD 2.** Every figure in this report is derived from the 100
 real TD 1 cells committed in [`../td1/`](../td1/) (`nature = real`). Where a supplied or
