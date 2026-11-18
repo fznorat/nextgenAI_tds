@@ -1,0 +1,15 @@
+Pair A, re-run of the scripts of pairs B and C on commit 4542736 (no network, no model call)
+
+--- pair B: td2/B/scripts/pair_b_wrong_consensus.py --db <kit>/data/boutique.sqlite
+output identical to td2/B/outputs/wrong-consensus/pair_b_output.txt (apart from the database path in one title line)
+   sum missed = 439570 ; wrongly added = 0 (0 customers)
+   differences: 0
+
+--- pair C: td2/C/scripts/age_guard_td2.py <kit>
+The check reproduces the reference on 20/20 questions, so a rejection above is a rejection of the vote, not of the check.
+--- pair C: atelier-routage.py (before) vs outputs/routing/routage-before.jsonl
+identical
+--- pair C: atelier-routage-td2.py (after) vs outputs/routing/routage-after.jsonl
+identical
+embedded TD 1 rates agree with td2/C/analysis/csv/family-rates-td1.csv
+--- pair C: family_rates_td2.py regenerates the two CSV files; content identical to the committed ones (only the line endings differ)

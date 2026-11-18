@@ -1,0 +1,24 @@
+=== PART B: pair B, wrong consensus on C10 ===
+reference window: 558980 (expected 558980)
+case (a) only, the shared faulty clause: 119410 (expected 119410)
+order lines matched by Qwen's '= 24' branch: 0 (expected 0)
+  delta: ('C004', '2000-09-25', 17, 150260)
+  delta: ('C005', '2000-09-26', 20, 150240)
+  delta: ('C007', '2000-11-30', 18, 118740)
+  delta: ('C022', '2000-08-14', 4, 20330)
+delta total: 439570 in 59 lines | reference - case (a): 439570
+lines counted by the faulty clause but not by the reference (wrongly added): 0 (expected 0)
+independent Python age-25 revenue: 558980 | of which year difference 26: 439570
+
+=== PART C: pair C, rates and measured facts ===
+F1 computed [6, 6, 6, 6, 6] of 6 | claimed by pair C [6, 6, 6, 6, 6] | same: True
+F2 computed [4, 2, 0, 4, 2] of 4 | claimed by pair C [4, 2, 0, 4, 2] | same: True
+F2b computed [1, 1, 0, 0, 0] of 1 | claimed by pair C [1, 1, 0, 0, 0] | same: True
+F3 computed [4, 4, 4, 3, 4] of 4 | claimed by pair C [4, 4, 4, 3, 4] | same: True
+F4 computed [4, 5, 3, 2, 3] of 5 | claimed by pair C [4, 5, 3, 2, 3] | same: True
+family rate mismatches: 0
+HTTP 429 rows: [('openai/gpt-oss-20b', 'C19'), ('qwen/qwen3.8-27b', 'C16'), ('qwen/qwen3.8-27b', 'C17'), ('qwen/qwen3.8-27b', 'C18'), ('qwen/qwen3.8-27b', 'C19'), ('qwen/qwen3.8-27b', 'C20')]
+final cells: 100 | median prompt tokens: 626.0 | median completion tokens: 140.0
+rows with a reasoning counter > 0: 40 | completion >= reasoning on all: True
+price per request, gpt-oss-20b at 0.075 / 0.30 USD per million : 8.89e-05
+price per request, gpt-oss-120b at 0.15 / 0.60 USD per million : 0.0001779

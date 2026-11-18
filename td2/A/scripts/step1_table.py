@@ -23,11 +23,19 @@ MODELS = {
     "D": ("groq", "qwen/qwen3.8-27b"),
     "E": ("openrouter", "dots-studio/dots-3-note-preview:free"),
 }
-reference = {row["case_id"]: int(row["revenue_cents"]) for row in csv.DictReader(open(args.reference))}
+reference = {row["case_id"]: int(row["revenue_cents"]) for row in csv.DictReader(open(args.reference, newline = "", encoding = "utf-8"))}
 
 last_attempt = {}
-for row in csv.DictReader(open(args.traces)):
-    last_attempt[(row["provider"], row["model_requested"], row["case_id"])] = row  # file order: last attempt wins
+skipped_not_real = 0
+with open(args.traces, newline = "", encoding = "utf-8") as trace_file:
+    for row in csv.DictReader(trace_file):
+        if row.get("nature", "real") != "real":
+            skipped_not_real += 1   # only real cells are measured counts
+            continue
+        key = (row["provider"], row["model_requested"], row["case_id"])
+        # the last attempt is the one with the highest `attempts`, whatever the order of the file
+        if key not in last_attempt or int(row["attempts"] or 1) >= int(last_attempt[key]["attempts"] or 1):
+            last_attempt[key] = row
 
 def proposal(letter, case_id):
     provider, model = MODELS[letter]
@@ -56,6 +64,8 @@ for number in range(1, 21):
     for letter in "ABCDE":
         prop, verdict = proposal(letter, case_id)
         row[letter] = prop.value if prop.value is not None else "(" + verdict + ")"
+    row["2of3_voters"] = str(sum(1 for letter in "ACD" if proposal(letter, case_id)[0].value is not None)) + "/3"
+    row["3of5_voters"] = str(sum(1 for letter in "ABCDE" if proposal(letter, case_id)[0].value is not None)) + "/5"
     row["2of3"] = text(decision_23); row["2of3_votes"] = decision_23["votes"]; row["2of3_vs_ref"] = versus(decision_23, case_id)
     row["3of5"] = text(decision_35); row["3of5_votes"] = decision_35["votes"]; row["3of5_vs_ref"] = versus(decision_35, case_id)
     row["decision_changes"] = "YES" if row["2of3"] != row["3of5"] else ""
@@ -68,4 +78,5 @@ with open(args.out, "w", newline = "") as handle:
 for key in ("2of3", "3of5"):
     print(key, "| consensus:", sum(1 for r in rows if r[key + "_vs_ref"] != "-"), "| correct:", sum(1 for r in rows if r[key + "_vs_ref"] == "yes"),
           "| wrong:", [r["case"] for r in rows if r[key + "_vs_ref"] == "NO"], "| abstain:", [r["case"] for r in rows if r[key + "_vs_ref"] == "-"])
+print("cells skipped because nature != real:", skipped_not_real)
 print("decision changes:", [r["case"] for r in rows if r["decision_changes"]])

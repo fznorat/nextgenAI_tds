@@ -396,7 +396,7 @@ that the cheapest adequate check is not a bigger quorum but a deterministic reco
 | Member | Pair | Work in TD 2 |
 |---|---|---|
 | VERDES Adrian | **C** | Step 3 in full: per-family TD 1 rates and the script that derives them, quorum cross-check, the one-page rule, the adapted simulator, the deterministic `reference` check, the priority analysis, this report's section 3 and the repository restructuring |
-| PERKINS Luca | A | Step 1: `vote_k_sur_n`, the four synthetic examples, the twenty-question 2-of-3 versus 3-of-5 table |
+| PERKINS Luca, NORAT Faizan | A | Step 1: `vote_k_sur_n`, the four synthetic examples, the twenty-question 2-of-3 versus 3-of-5 table |
 | SAAID Myriam, DE GENTILE Océane | B | Step 2: scan of the 100 cells, quorum verdicts, C10 SQL root cause, delta query and independent check on `data/boutique.sqlite`, DEMO-VOTE, cross-check with pair A's vote, this report's section 2 |
 
 To be completed with names by pairs A and B before hand-in.
