@@ -1,0 +1,7 @@
+simple               run      small-free             cash=0     checks=read-only execution and value check           eligible included capacity
+complex              run      senior-subscription    cash=0     checks=read-only execution and value check           eligible included capacity
+deferrable           defer    senior-subscription    cash=0     checks=read-only execution and value check           recheck availability at wake-up
+urgent               run      senior-api             cash=0.3   checks=read-only execution and value check           available route within the authorised budget
+budget exhausted     abstain  None                   cash=0     checks=read-only execution and value check           no eligible resource within deadline and budget
+high impact          run      senior-subscription    cash=0     checks=source verification and human review          eligible included capacity
+unknown capability   abstain  None                   cash=0     checks=read-only execution and value check           no eligible resource within deadline and budget
