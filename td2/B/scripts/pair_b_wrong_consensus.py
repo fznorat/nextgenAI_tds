@@ -5,7 +5,7 @@ No network. Reads traces-td1.csv, reference-td1.csv and data/boutique.sqlite.
 
 From the repository root (the database is not committed: it is in the student kit):
 
-    python td2/scripts/pair_b_wrong_consensus.py --db <student-kit-dir>/data/boutique.sqlite
+    python td2/B/scripts/pair_b_wrong_consensus.py --db <student-kit-dir>/data/boutique.sqlite
 
 1. scans every (question, model) cell (last attempt) for shared wrong values;
 2. votes: fixed 2-of-3 panel and 3-of-5 quorum (same contract as vote_k_sur_n);
@@ -13,7 +13,7 @@ From the repository root (the database is not committed: it is in the student ki
    and rows wrongly added) and an independent Python age check;
 4. DEMO-VOTE: the one-row toy table (constructed teaching example);
 5. cross-check: the same votes recomputed with pair A's Orchestrateur.vote_k_sur_n
-   (td2/scripts/skeleton-multi-llm-en.py).
+   (td2/A/scripts/skeleton-multi-llm-en.py).
 """
 import argparse
 import importlib.util
@@ -192,15 +192,16 @@ def demo_vote():
     print(f"   '>' -> {gt} ; '>=' -> {ge} ; reference 100 ; 2-of-3 on [{gt}, {gt}, {ge}] -> {r['value']} ({r['votes']} votes)")
 
 
-HERE = Path(__file__).resolve().parent
-ROOT = HERE.parent.parent
+HERE = Path(__file__).resolve().parent          # td2/B/scripts
+ROOT = HERE.parents[2]                           # repository root
+PAIR_A = HERE.parents[1] / "A" / "scripts"       # pair A's completed skeleton
 
 
 def pair_a_check(by_case, cases):
     """Recompute 2-of-3 and 3-of-5 with pair A's vote_k_sur_n and compare with ours."""
     print("\n=== Cross-check with pair A's vote_k_sur_n ===")
-    sys.path.insert(0, str(HERE))
-    spec = importlib.util.spec_from_file_location("skeleton_pair_a", HERE / "skeleton-multi-llm-en.py")
+    sys.path.insert(0, str(PAIR_A))
+    spec = importlib.util.spec_from_file_location("skeleton_pair_a", PAIR_A / "skeleton-multi-llm-en.py")
     mod = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = mod
     spec.loader.exec_module(mod)
